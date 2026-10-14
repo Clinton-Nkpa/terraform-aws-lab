@@ -1,0 +1,21 @@
+# Terraform working files and local state
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+*.plan
+crash.log
+crash.*.log
+
+# Local variable files and credentials
+*.tfvars
+*.tfvars.json
+
+# Local snapshots and runtime output
+pre-*/
+ec2 get-console-output*
+
+# Editor and operating-system files
+.DS_Store
+.idea/
+.vscode/
