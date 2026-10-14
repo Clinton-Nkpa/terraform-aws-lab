@@ -1,50 +1,42 @@
 # AWS Cloud Security Lab
 
-**Status:** In progress  
-**Focus:** AWS infrastructure security, network segmentation, IAM, secure administration, and evidence-led troubleshooting  
-**Stack:** AWS, Terraform, AWS CLI, Linux, EC2, VPC, IAM, AWS Systems Manager
+**Status:** In progress
 
-## Overview
+## Why I'm working on this
 
-A hands-on AWS security lab provisioned with Terraform to investigate network segmentation, least-privilege access paths, and private workload administration. The environment uses a VPC with separate client and private application subnets, security groups, route tables, EC2 instance roles, and Systems Manager interface endpoints.
+I built this lab to practise AWS network security with Terraform and keep a record of what happens when I test the network paths. I’m using a client instance and a private app instance to look at routing, security group rules, and Systems Manager access.
 
-This repository entry documents work completed to date. It does not claim a production deployment or a completed security audit.
+This is a learning lab. The results describe what I tested so far; they aren’t a production deployment or a completed audit.
 
-## Implemented and tested
+## Current setup
 
-- Provisioned a VPC using CIDR `10.20.0.0/16`, with a client subnet (`10.20.1.0/24`) and private application subnet (`10.20.2.0/24`).
-- Configured route tables to provide the client subnet with an Internet Gateway route while the private application subnet had only the VPC-local route.
-- Deployed separate client and private application EC2 instances.
-- Configured dedicated instance roles and instance profiles, including `AmazonSSMManagedInstanceCore`, to support Systems Manager access.
-- Required IMDSv2 and used encrypted EBS root volumes.
-- Used Systems Manager Session Manager to administer instances without opening inbound SSH access.
-- Verified client-to-application TCP 8080 connectivity with a successful HTTP 200 response.
-- Tested TCP 22 from the client; the connection timed out, consistent with the application security group having no inbound TCP 22 rule. The timeout alone does not prove which network control dropped the traffic.
-- Investigated an SSM connectivity failure by inspecting live security-group rules. A missing TCP 443 ingress permission from the client security group to the SSM endpoint security group was corrected, after which SSM connectivity was verified.
-- Tested public HTTPS from the private application instance; the request timed out, consistent with the private route table and restricted egress policy. Further path analysis remains planned.
+- A VPC with a client subnet (`10.20.1.0/24`) and a private app subnet (`10.20.2.0/24`).
+- The client subnet has a route to an Internet Gateway and can get a public IPv4 address. The app instance has no public IPv4 address.
+- Separate security groups for the client, app, and Systems Manager interface endpoints.
+- EC2 instance roles for Systems Manager. Both instances require IMDSv2 and use encrypted EBS root volumes.
+- Session Manager for administration, with no inbound SSH rule.
 
-## Security design notes
+## What I've tested
 
-- The client subnet is public-routed and can receive public IPv4 addresses; the client security group has no inbound rules.
-- The application instance has no public IPv4 address.
-- The application security group allows inbound TCP 8080 from the client security group and restricts outbound HTTPS to the endpoint security group.
-- The SSM endpoint security group allows HTTPS from the lab client and application security groups.
-- The client security group's HTTPS egress is currently broad to `0.0.0.0/0`; reviewing whether this can be narrowed is a follow-up hardening task.
+- **Client to app on TCP 8080:** the connection worked and the temporary HTTP server returned `200 OK`.
+- **Client to app on TCP 22:** the connection timed out. The app security group has no inbound TCP 22 rule. The timeout is consistent with that rule set, but on its own it doesn’t show exactly where the traffic was dropped.
+- **Public HTTPS from the private app:** DNS resolved, but the IPv4 connection timed out and IPv6 was unreachable. The private subnet route table has only the VPC-local route. I still want to check the path with Reachability Analyzer or Flow Logs.
+- **Systems Manager:** I opened Session Manager sessions to the instances. While troubleshooting, I found the endpoint security group was missing TCP 443 ingress from the client security group. I added the rule, and the client then came back online in Systems Manager. That timing points to the rule as the fix, though it doesn’t prove it was the only cause.
 
-## Evidence and limitations
+I initially ran one HTTPS test from the client by mistake. It returned `200 OK`, but it didn’t test the private app’s egress. I repeated the test from the app and left the first result out of the app findings.
 
-Observed tests and AWS configuration inspections support the findings above. Connectivity timeouts are treated as observations, not definitive proof of a specific dropped packet or control. Reachability Analyzer and VPC Flow Logs have not yet been used to corroborate the network paths.
+## Things I still want to look at
 
-The temporary Python HTTP server used for TCP 8080 validation returned a directory listing and was intended only for a short-lived test, not as a production application.
+- Use Reachability Analyzer for the client-to-app paths on TCP 8080 and TCP 22.
+- Enable and inspect VPC Flow Logs, then compare them with the tests above.
+- Review the client’s TCP 443 egress. It currently allows HTTPS to `0.0.0.0/0`; I want to see whether I can narrow it without breaking Session Manager.
+- Stop the temporary HTTP server and review the AWS resources for cleanup and ongoing costs.
+- Continue into CloudTrail, vulnerability management, key management, and backup testing.
 
-## Planned work
+## Files
 
-1. Use VPC Reachability Analyzer to analyse the client-to-application paths for TCP 8080 and TCP 22.
-2. Enable and inspect VPC Flow Logs to correlate observed traffic with the configured controls.
-3. Extend the lab into CloudTrail-based investigation and AWS security monitoring.
-4. Review KMS key management, vulnerability management, audit evidence, software supply-chain risks, and backup/restore testing.
-5. Review least-privilege egress and remove or recreate billable lab resources deliberately when they are not needed.
+- [`main.tf`](main.tf) contains the Terraform configuration.
+- [`docs/network-security-lab-report.md`](docs/network-security-lab-report.md) has the test notes and evidence. AWS resource IDs and individual host IPs have been removed from this copy.
+- [`docs/aws-cloud-security-skill-progression.md`](docs/aws-cloud-security-skill-progression.md) tracks the areas I’ve covered and what I still need to learn.
 
-## Reproducibility and security
-
-The Terraform configuration and execution evidence should be committed alongside this document after review and sanitisation. Do not commit Terraform state files, state backups, AWS credentials, private keys, session tokens, or unredacted account-specific output. Check plans before applying changes and avoid committing secrets or sensitive resource metadata.
+I’ve left Terraform state, saved plans, AWS console output, and local snapshots out of this repository.
