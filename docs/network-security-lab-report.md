@@ -224,64 +224,64 @@ Complete one entry per observation. Separate the observation from its explanatio
 
 ### Observation entry
 
-**Observation ID:**  
-**Objective / task:**  
-**Date/time and test conditions:**  
-**Observation (what happened, stated without explanation):**  
-**Evidence supporting the observation (log excerpt, analysis result, command output, configuration snapshot):**  
-**Evidence limitations (missing fields, delay, unsupported feature, measurement uncertainty):**  
+**Observation ID:**
+**Objective / task:**
+**Date/time and test conditions:**
+**Observation (what happened, stated without explanation):**
+**Evidence supporting the observation (log excerpt, analysis result, command output, configuration snapshot):**
+**Evidence limitations (missing fields, delay, unsupported feature, measurement uncertainty):**
 
-**Hypothesis:**  
+**Hypothesis:**
 What specific network behavior or control do you think caused the observation?
 
-**Expected evidence if the hypothesis is supported:**  
+**Expected evidence if the hypothesis is supported:**
 Name the result that should be present and where it should appear.
 
-**Evidence found:**  
+**Evidence found:**
 What evidence supports the hypothesis? What evidence conflicts with it?
 
-**Assessment:**  
+**Assessment:**
 - [ ] Supported by the evidence collected
 - [ ] Rejected by the evidence collected
 - [ ] Inconclusive; additional evidence is needed
 
-**Inference from the evidence:**  
+**Inference from the evidence:**
 What is the narrowest conclusion justified by the evidence? Avoid extending it beyond the tested source, destination, protocol, port, time, and configuration.
 
-**Alternative interpretations:**  
+**Alternative interpretations:**
 List other plausible causes. Consider delayed or missing Flow Log records, application/service health, host firewall behavior, DNS, route changes, security-group statefulness, NACL return rules, test-tool behavior, and Reachability Analyzer support limitations.
 
-**Follow-up experiment:**  
+**Follow-up experiment:**
 Change or measure one factor that would distinguish the main hypothesis from the alternatives.
 
-**Reviewer / date:**  
+**Reviewer / date:**
 
 ---
 
 ### Observation entry
 
-**Observation ID:**  
-**Objective / task:**  
-**Date/time and test conditions:**  
-**Observation (what happened, stated without explanation):**  
-**Evidence supporting the observation:**  
-**Evidence limitations:**  
+**Observation ID:**
+**Objective / task:**
+**Date/time and test conditions:**
+**Observation (what happened, stated without explanation):**
+**Evidence supporting the observation:**
+**Evidence limitations:**
 
-**Hypothesis:**  
+**Hypothesis:**
 
-**Expected evidence if the hypothesis is supported:**  
+**Expected evidence if the hypothesis is supported:**
 
-**Evidence found:**  
+**Evidence found:**
 
 **Assessment:** Supported / Rejected / Inconclusive
 
-**Inference from the evidence:**  
+**Inference from the evidence:**
 
-**Alternative interpretations:**  
+**Alternative interpretations:**
 
-**Follow-up experiment:**  
+**Follow-up experiment:**
 
-**Reviewer / date:**  
+**Reviewer / date:**
 
 ## Future analysis questions
 
@@ -307,11 +307,11 @@ Change or measure one factor that would distinguish the main hypothesis from the
 
 **Observed configuration**
 
-- VPC: `[redacted AWS resource ID]`, CIDR `10.20.0.0/16`, Region `eu-north-1`.
-- Client subnet: `[redacted AWS resource ID]`, CIDR `10.20.1.0/24`, associated with route table `[redacted AWS resource ID]`.
-- Private application subnet: `[redacted AWS resource ID]`, CIDR `10.20.2.0/24`, associated with route table `[redacted AWS resource ID]`.
-- Internet gateway: `[redacted AWS resource ID]`.
-- Client route table has active VPC-local route `10.20.0.0/16 -> local` and active default route `0.0.0.0/0 -> [redacted AWS resource ID]`.
+- VPC: `[redacted VPC ID]`, CIDR `10.20.0.0/16`, Region `eu-north-1`.
+- Client subnet: `[redacted subnet ID]`, CIDR `10.20.1.0/24`, associated with route table `[redacted route table ID]`.
+- Private application subnet: `[redacted subnet ID]`, CIDR `10.20.2.0/24`, associated with route table `[redacted route table ID]`.
+- Internet gateway: `[redacted internet gateway ID]`.
+- Client route table has active VPC-local route `10.20.0.0/16 -> local` and active default route `0.0.0.0/0 -> [redacted internet gateway ID]`.
 - Private application route table has only the active VPC-local route `10.20.0.0/16 -> local`.
 - Terraform state listed nine managed resources after this objective.
 
@@ -325,10 +325,10 @@ AWS-side route-table inspection supports the conclusion that the client subnet h
 
 #### Baseline observations
 
-- The VPC's default security group is `[redacted AWS resource ID]`. Its observed inbound rule permits all protocols from members of the same security group; its observed outbound rule permits all IPv4 destinations (`0.0.0.0/0`). It is not being used for the two test roles.
-- Default network ACL: `[redacted AWS resource ID]`, associated with both lab subnets. Observed inbound and outbound rule 100 allow all IPv4 (`0.0.0.0/0`); rule 32767 is the deny fallback. The default NACL is intentionally unchanged in this first experiment so that security-group behavior can be isolated.
-- Dedicated client security group created: `[redacted AWS resource ID]`, name `terraform-security-lab-client`.
-- Dedicated private-app security group created: `[redacted AWS resource ID]`, name `terraform-security-lab-app`.
+- The VPC's default security group is `[redacted security group ID]`. Its observed inbound rule permits all protocols from members of the same security group; its observed outbound rule permits all IPv4 destinations (`0.0.0.0/0`). It is not being used for the two test roles.
+- Default network ACL: `[redacted network ACL ID]`, associated with both lab subnets. Observed inbound and outbound rule 100 allow all IPv4 (`0.0.0.0/0`); rule 32767 is the deny fallback. The default NACL is intentionally unchanged in this first experiment so that security-group behavior can be isolated.
+- Dedicated client security group created: `[redacted security group ID]`, name `terraform-security-lab-client`.
+- Dedicated private-app security group created: `[redacted security group ID]`, name `terraform-security-lab-app`.
 - Both groups were created by Terraform with `egress = []`. The reviewed plan reported `2 to add, 0 to change, 0 to destroy`; apply reported `2 added, 0 changed, 0 destroyed`.
 - AWS CLI inspection subsequently returned `Inbound: []` and `Outbound: []` for both dedicated security groups.
 
@@ -346,7 +346,7 @@ AWS-side route-table inspection supports the conclusion that the client subnet h
 |---|---|---|---|---|
 | 2026-10-12 20:05 | Create dedicated client and app security groups | `terraform plan` | `2 to add, 0 to change, 0 to destroy`; both groups showed `egress = []`. | Expected plan; no unrelated changes proposed. |
 | 2026-10-12 20:06 | Apply security-group resources | `terraform apply` | User reported: `Apply complete! Resources: 2 added, 0 changed, 0 destroyed.` | Resources created successfully according to Terraform. |
-| 2026-10-12 20:07 | Verify actual AWS security-group configuration | `aws ec2 describe-security-groups` filtered to the two group names in VPC `[redacted AWS resource ID]` | Client `[redacted AWS resource ID]`: inbound `[]`, outbound `[]`. App `[redacted AWS resource ID]`: inbound `[]`, outbound `[]`. | AWS-reported configuration matches the intended initial baseline. No data-plane traffic test has been performed. |
+| 2026-10-12 20:07 | Verify actual AWS security-group configuration | `aws ec2 describe-security-groups` filtered to the two group names in VPC `[redacted VPC ID]` | Client `[redacted security group ID]`: inbound `[]`, outbound `[]`. App `[redacted security group ID]`: inbound `[]`, outbound `[]`. | AWS-reported configuration matches the intended initial baseline. No data-plane traffic test has been performed. |
 
 **Numbering convention:** Preserve the existing Objective 3 step count across turns. Do not restart step numbering for individual commands; restart only when beginning a new objective.
 
@@ -354,12 +354,12 @@ AWS-side route-table inspection supports the conclusion that the client subnet h
 
 ### Baseline and dedicated security groups
 
-The default security group in VPC `[redacted AWS resource ID]` was inspected. Its inbound rule allowed all protocols from the same security group, and its outbound rule allowed all IPv4 destinations. The default network ACL `[redacted AWS resource ID]` was also inspected: it was associated with both lab subnets and had allow-all IPv4 inbound/outbound rules with deny-all fallback entries. The default NACL was left unchanged to avoid introducing another variable.
+The default security group in VPC `[redacted VPC ID]` was inspected. Its inbound rule allowed all protocols from the same security group, and its outbound rule allowed all IPv4 destinations. The default network ACL `[redacted network ACL ID]` was also inspected: it was associated with both lab subnets and had allow-all IPv4 inbound/outbound rules with deny-all fallback entries. The default NACL was left unchanged to avoid introducing another variable.
 
 Two dedicated Terraform-managed security groups were created and independently inspected:
 
-- Client: `[redacted AWS resource ID]` (`terraform-security-lab-client`)
-- Private app: `[redacted AWS resource ID]` (`terraform-security-lab-app`)
+- Client: `[redacted security group ID]` (`terraform-security-lab-client`)
+- Private app: `[redacted security group ID]` (`terraform-security-lab-app`)
 
 Both were configured with `egress = []`. AWS CLI inspection reported empty inbound and outbound rule arrays for both immediately after creation.
 
@@ -367,9 +367,9 @@ Both were configured with `egress = []`. AWS CLI inspection reported empty inbou
 
 Added and applied `aws_vpc_security_group_ingress_rule.app_from_client`.
 
-- AWS rule ID: `[redacted AWS resource ID]`
-- Destination security group: app (`[redacted AWS resource ID]`)
-- Source security group: client (`[redacted AWS resource ID]`)
+- AWS rule ID: `[redacted security group rule ID]`
+- Destination security group: app (`[redacted security group ID]`)
+- Source security group: client (`[redacted security group ID]`)
 - Protocol/port: TCP/8080
 - Description: `Allow TCP 8080 from the lab client`
 - Terraform plan: 1 to add, 0 to change, 0 to destroy
@@ -385,8 +385,8 @@ The AWS `describe-security-group-rules` result matched the intended ingress poli
 
 Added and applied `aws_vpc_security_group_egress_rule.client_to_app`.
 
-- Destination security group: app (`[redacted AWS resource ID]`)
-- Source security group: client (`[redacted AWS resource ID]`)
+- Destination security group: app (`[redacted security group ID]`)
+- Source security group: client (`[redacted security group ID]`)
 - Protocol/port: TCP/8080
 - Description: `Allow client to connect to app on TCP 8080`
 - Terraform plan: 1 to add, 0 to change, 0 to destroy
@@ -396,10 +396,10 @@ Added and applied `aws_vpc_security_group_egress_rule.client_to_app`.
 
 Independent AWS CLI inspection returned:
 
-- Rule ID: `[redacted AWS resource ID]`
+- Rule ID: `[redacted security group rule ID]`
 - `IsEgress: true`
 - Protocol/port: TCP/8080
-- Destination security group: `[redacted AWS resource ID]`
+- Destination security group: `[redacted security group ID]`
 - IPv4 CIDR: `null`
 
 The egress rule matches the intended narrow policy. Together, the verified ingress and egress rules express permission for the client security group to initiate TCP/8080 traffic to the app security group. Security groups are stateful, so response traffic for an allowed connection is permitted by connection tracking; a separate reverse-direction rule is not needed solely for response packets.
@@ -448,12 +448,12 @@ This section records Terraform and report changes made after the initial folder 
 
 ### Deployed workload and management architecture
 
-- VPC: `[redacted AWS resource ID]` (`10.20.0.0/16`), Region `eu-north-1`.
-- Client EC2: `[redacted AWS resource ID]`, private address `[redacted host IP]`, in client subnet `[redacted AWS resource ID]`. It has a public IPv4 address and uses the client security group `[redacted AWS resource ID]`.
-- Private app EC2: `[redacted AWS resource ID]`, private address `[redacted host IP]`, no public IPv4 address, in private subnet `[redacted AWS resource ID]`. It uses app security group `[redacted AWS resource ID]`.
+- VPC: `[redacted VPC ID]` (`10.20.0.0/16`), Region `eu-north-1`.
+- Client EC2: `[redacted instance ID]`, private address `[redacted private IP]`, in client subnet `[redacted subnet ID]`. It has a public IPv4 address and uses the client security group `[redacted security group ID]`.
+- Private app EC2: `[redacted instance ID]`, private address `[redacted private IP]`, no public IPv4 address, in private subnet `[redacted subnet ID]`. It uses app security group `[redacted security group ID]`.
 - Both instances were reported `Online` by Systems Manager. After a connectivity issue, the client was observed first as `notconnected`, then `connected`; `aws ssm start-session` subsequently opened an interactive shell successfully. The private app also returned `Status: connected` from `aws ssm get-connection-status`.
-- Systems Manager interface endpoints were deployed in the private subnet with private DNS enabled: `[redacted AWS resource ID]` for `ssm` and `[redacted AWS resource ID]` for `ssmmessages`. Their endpoint security group is `[redacted AWS resource ID]`.
-- During troubleshooting, inspection of the endpoint security group showed inbound TCP 443 from the app security group but initially not from the client security group. A Terraform plan for the targeted client ingress addition showed `1 to add, 0 to change, 0 to destroy`; the change was applied. Rule ID: `[redacted AWS resource ID]`, TCP 443 from client SG `[redacted AWS resource ID]`, description `Allow HTTPS from the lab client to SSM endpoints`. Afterward the client reported `Online`, and a later status check returned `connected`; a subsequent Session Manager shell opened successfully. This sequence is consistent with the rule resolving a connectivity problem, but timing and the status transitions alone do not prove it was the sole cause.
+- Systems Manager interface endpoints were deployed in the private subnet with private DNS enabled: `[redacted VPC endpoint ID]` for `ssm` and `[redacted VPC endpoint ID]` for `ssmmessages`. Their endpoint security group is `[redacted security group ID]`.
+- During troubleshooting, inspection of the endpoint security group showed inbound TCP 443 from the app security group but initially not from the client security group. A Terraform plan for the targeted client ingress addition showed `1 to add, 0 to change, 0 to destroy`; the change was applied. Rule ID: `[redacted security group rule ID]`, TCP 443 from client SG `[redacted security group ID]`, description `Allow HTTPS from the lab client to SSM endpoints`. Afterward the client reported `Online`, and a later status check returned `connected`; a subsequent Session Manager shell opened successfully. This sequence is consistent with the rule resolving a connectivity problem, but timing and the status transitions alone do not prove it was the sole cause.
 
 ### Objective 3 — Controlled client/app traffic tests
 
@@ -462,29 +462,29 @@ This section records Terraform and report changes made after the initial folder 
 **Command, run from the client SSM shell:**
 
 ```bash
-curl -v --connect-timeout 5 http://[redacted host IP]:8080/
+curl -v --connect-timeout 5 http://[redacted private IP]:8080/
 ```
 
-**Observed output:** TCP connection established from `[redacted host IP]` to `[redacted host IP]:8080`; server returned `HTTP/1.0 200 OK`, identified as `SimpleHTTP/0.6 Python/3.9.25`, followed by a directory listing.
+**Observed output:** TCP connection established from `[redacted private IP]` to `[redacted private IP]:8080`; server returned `HTTP/1.0 200 OK`, identified as `SimpleHTTP/0.6 Python/3.9.25`, followed by a directory listing.
 
-**App service:** A temporary Python HTTP server had been started on the private app with `python3 -m http.server 8080 --bind [redacted host IP]`.
+**App service:** A temporary Python HTTP server had been started on the private app with `python3 -m http.server 8080 --bind 0.0.0.0`.
 
 **Inference:** The intended client-to-app TCP 8080 path worked end-to-end at test time: routing, applicable security-group permissions, and a listening HTTP service jointly supported a successful request. The returned directory listing also indicates the server's working directory contained a large set of system executables; this was a temporary diagnostic server, not a production service. Stop it when no longer needed.
 
 #### Test B — Client to app on TCP 22 (intended denied path)
 
-An initial attempt using `curl ... telnet://[redacted host IP]:22` did not test the network: the installed curl build reported `Protocol "telnet" is disabled`.
+An initial attempt using `curl ... telnet://[redacted private IP]:22` did not test the network: the installed curl build reported `Protocol "telnet" is disabled`.
 
 The test was then attempted from the client SSM shell with:
 
 ```bash
-timeout 5 bash -c '</dev/tcp/[redacted network address]' 2>&1
+timeout 5 bash -c '</dev/tcp/[redacted private IP]/22' 2>&1
 echo "Exit code: $?"
 ```
 
-**Observed result:** exit code `124`, indicating the command timed out. Separately, on the app, `sudo ss -lnt` showed SSH listening on `[redacted host IP]:22` and `[::]:22`.
+**Observed result:** exit code `124`, indicating the command timed out. Separately, on the app, `sudo ss -lnt` showed SSH listening on `0.0.0.0:22` and `[::]:22`.
 
-The live app security-group rules were then inspected. The observed inbound rule was TCP 8080 from client SG `[redacted AWS resource ID]`; no inbound TCP 22 rule was present. The app SG also had outbound TCP 443 to endpoint SG `[redacted AWS resource ID]`.
+The live app security-group rules were then inspected. The observed inbound rule was TCP 8080 from client SG `[redacted security group ID]`; no inbound TCP 22 rule was present. The app SG also had outbound TCP 443 to endpoint SG `[redacted security group ID]`.
 
 **Inference:** The timeout is consistent with the intended TCP 22 restriction, and the presence of an SSH listener rules out “no listener” as the obvious explanation. However, a timeout by itself does not uniquely identify the dropping control. The deployed security-group configuration is the direct evidence that no app ingress permission for TCP 22 was configured; a Reachability Analyzer result or suitable flow evidence could further corroborate the path analysis.
 
@@ -494,7 +494,7 @@ The live app security-group rules were then inspected. The observed inbound rule
 
 ```bash
 aws ec2 describe-route-tables \
-  --route-table-ids [redacted AWS resource ID] \
+  --route-table-ids [redacted route table ID] \
   --region eu-north-1 \
   --query 'RouteTables[0].Routes[].[DestinationCidrBlock,GatewayId,NatGatewayId,State]' \
   --output table
@@ -506,9 +506,9 @@ aws ec2 describe-route-tables \
 
 #### Test D — Public HTTPS from the private app
 
-A first `curl -I --connect-timeout 5 https://example.com` returned HTTP 200, but a later verbose run revealed the connection source was `[redacted host IP]`, the **client** address, not the private app address. The first result was therefore invalid as evidence about app egress. This was an important test-environment identification error; it was not evidence that the private subnet had internet access.
+A first `curl -I --connect-timeout 5 https://example.com` returned HTTP 200, but a later verbose run revealed the connection source was `[redacted private IP]`, the **client** address, not the private app address. The first result was therefore invalid as evidence about app egress. This was an important test-environment identification error; it was not evidence that the private subnet had internet access.
 
-After opening the correct app SSM session, the app interface was confirmed as `[redacted network address]`. The test was repeated there:
+After opening the correct app SSM session, the app interface was confirmed as `[redacted private IP]`. The test was repeated there:
 
 ```bash
 curl -v -I --connect-timeout 5 https://example.com
@@ -524,7 +524,7 @@ From the local Linux Mint terminal:
 
 ```bash
 aws ssm get-connection-status \
-  --target [redacted AWS resource ID] \
+  --target [redacted instance ID] \
   --region eu-north-1
 ```
 
@@ -538,12 +538,12 @@ Observed rule configuration at the end of this test sequence:
 
 | Security group | Direction | Protocol / port | Peer | Purpose |
 |---|---|---|---|---|
-| Client `[redacted AWS resource ID]` | Egress | TCP 8080 | App SG `[redacted AWS resource ID]` | Permit client-to-app test traffic |
-| Client `[redacted AWS resource ID]` | Egress | TCP 443 | `0.0.0.0/0` | Client HTTPS egress for Systems Manager; broader than endpoint-only access |
-| App `[redacted AWS resource ID]` | Ingress | TCP 8080 | Client SG `[redacted AWS resource ID]` | Permit the intended application flow |
-| App `[redacted AWS resource ID]` | Egress | TCP 443 | Endpoint SG `[redacted AWS resource ID]` | Permit app access to the SSM interface endpoints |
-| Endpoint `[redacted AWS resource ID]` | Ingress | TCP 443 | Client SG `[redacted AWS resource ID]` | Permit client access to SSM endpoints |
-| Endpoint `[redacted AWS resource ID]` | Ingress | TCP 443 | App SG `[redacted AWS resource ID]` | Permit app access to SSM endpoints |
+| Client `[redacted security group ID]` | Egress | TCP 8080 | App SG `[redacted security group ID]` | Permit client-to-app test traffic |
+| Client `[redacted security group ID]` | Egress | TCP 443 | `0.0.0.0/0` | Client HTTPS egress for Systems Manager; broader than endpoint-only access |
+| App `[redacted security group ID]` | Ingress | TCP 8080 | Client SG `[redacted security group ID]` | Permit the intended application flow |
+| App `[redacted security group ID]` | Egress | TCP 443 | Endpoint SG `[redacted security group ID]` | Permit app access to the SSM interface endpoints |
+| Endpoint `[redacted security group ID]` | Ingress | TCP 443 | Client SG `[redacted security group ID]` | Permit client access to SSM endpoints |
+| Endpoint `[redacted security group ID]` | Ingress | TCP 443 | App SG `[redacted security group ID]` | Permit app access to SSM endpoints |
 
 No inbound rule was observed for TCP 22 on the app security group. The endpoint security group was observed with no egress rules; security groups are stateful, so response traffic for permitted inbound connections is handled by connection tracking.
 
@@ -552,9 +552,9 @@ No inbound rule was observed for TCP 22 on the app security group. The endpoint 
 | Date (UTC; approximate sequence) | Objective/task | Command or change | Actual result | Assessment |
 |---|---|---|---|---|
 | 2026-10-13 | Restore client Session Manager connectivity | Added endpoint SG ingress TCP 443 from client SG via reviewed Terraform plan | Client later reported `Online`; `get-connection-status` returned `connected`; `start-session` opened a shell | SSM access restored; targeted rule was a plausible contributing fix, but not proven to be the sole cause |
-| 2026-10-13 | Objective 3: test allowed path | `curl -v --connect-timeout 5 http://[redacted host IP]:8080/` from client | TCP connection established; HTTP 200 OK | Allowed path demonstrated |
+| 2026-10-13 | Objective 3: test allowed path | `curl -v --connect-timeout 5 http://[redacted private IP]:8080/` from client | TCP connection established; HTTP 200 OK | Allowed path demonstrated |
 | 2026-10-13 | Objective 3: test denied path | Bash `/dev/tcp` attempt to app port 22, five-second timeout | Exit code 124; app separately confirmed SSH listener; app SG inspection showed no TCP 22 ingress | Observed result consistent with policy; timeout alone is not unique proof of filtering |
-| 2026-10-13 | Objective 2 / Objective 6: inspect private route | `describe-route-tables` for `[redacted AWS resource ID]` | Only active `10.20.0.0/16 -> local` route | Private route configuration confirmed |
+| 2026-10-13 | Objective 2 / Objective 6: inspect private route | `describe-route-tables` for `[redacted route table ID]` | Only active `10.20.0.0/16 -> local` route | Private route configuration confirmed |
 | 2026-10-13 | Objective 6: test app public egress | `curl -v -I --connect-timeout 5 https://example.com` from verified app shell | DNS succeeded; IPv6 was unreachable; IPv4 HTTPS timed out | Expected failure observed; consistent with private routing and egress policy |
 | 2026-10-13 | Verify management path | `aws ssm get-connection-status` for private app | `Status: connected` | App remained manageable through SSM |
 
@@ -562,13 +562,186 @@ No inbound rule was observed for TCP 22 on the app security group. The endpoint 
 
 - **Objective 1 — Policy:** Draft policy exists; any remaining review/approval and CIDR-overlap checks should be tracked separately.
 - **Objective 2 — Segmentation:** Subnets and route tables were inspected. The private route table has only the VPC-local route.
-- **Objective 3 — Security groups and live traffic:** Dedicated security groups and relevant rules were inspected. The TCP 8080 allowed path was demonstrated. The TCP 22 test timed out and is consistent with the absence of an ingress rule, but the precise dropping control has not been independently isolated.
-- **Objective 4 — Reachability Analyzer:** Not yet performed.
-- **Objective 5 — VPC Flow Logs:** Not yet enabled or queried.
-- **Objective 6 — Egress and private service access:** Direct public HTTPS from the verified app shell timed out; SSM remained connected. Endpoint-only access and costs still merit review. The client still has TCP 443 egress to `0.0.0.0/0`, which is intentionally broader than endpoint-only access.
-- **Objective 7 — Cleanup:** Not yet performed. The temporary EC2 instances and SSM interface endpoints can incur ongoing costs. Stop the temporary Python server when testing is complete, and review the final Terraform plan and resource inventory before teardown.
+- **Objective 3 — Security groups and live traffic:** Completed. TCP 8080 returned HTTP 200; TCP 22 timed out. Security-group configuration was inspected.
+- **Objective 4 — Reachability Analyzer:** Completed. TCP 8080 had a permitted path; TCP 22 had no permitted path, with security-group mismatches identified on client egress and app ingress.
+- **Objective 5 — VPC Flow Logs:** Completed. Flow Logs delivered records to CloudWatch; controlled TCP 8080 traffic was ACCEPT and TCP 22 traffic was REJECT.
+- **Objective 6 — Egress and private service access:** Configuration and deployed-state checks completed for route tables and the client, app, and SSM endpoint security groups. The private app subnet has only the VPC-local route; app egress is TCP 443 to the SSM endpoint SG; client egress includes TCP 8080 to the app SG and TCP 443 to 0.0.0.0/0. Both SSM interface endpoints are configured with private DNS. Direct public HTTPS from the app timed out while SSM remained connected. The broad client HTTPS rule is a documented hardening opportunity. Cost comparison and any rule changes were not performed.
+- **Objective 7 — Cleanup:** Partially completed. Both temporary EC2 instances were stopped after testing. Review remaining interface-endpoint, EBS, logging, and other resource costs; inspect the final Terraform plan and resource inventory before any teardown.
 
 ### Evidence limitations and follow-up
 
-The current evidence consists primarily of CLI configuration snapshots, connection results, and HTTP response output; VPC Flow Logs and Reachability Analyzer have not yet been used. These tests do not establish behavior for every source/destination pair, every port, IPv6, or every potential egress path. Next useful corroboration would be to run Reachability Analyzer for client-to-app TCP 8080 and TCP 22, and then optionally enable scoped Flow Logs to compare the model with observed traffic. Preserve the current state backup and inspect Terraform plans before further changes.
+The evidence now includes CLI configuration snapshots, controlled connection results, HTTP response output, Reachability Analyzer results, and VPC Flow Logs. Objective 6 configuration verification is complete for the inspected route tables and security groups; a full cost comparison remains outstanding. The tests do not establish behavior for every source/destination pair, every port, IPv6, or every potential egress path. Objective 7 cleanup remains partially complete; resource inventory and cost review remain outstanding. Terraform plans must be reviewed before further changes.
 
+
+---
+
+# Objective 5 — VPC Flow Logs: Live Traffic Verification
+
+**Date:** 15 October 2026
+**Region:** `eu-north-1`
+**VPC:** `[redacted VPC ID]`
+**CloudWatch log group:** `/aws/vpc/terraform-security-lab`
+
+## 1. Objective and configuration
+
+The objective was to enable VPC Flow Logs, verify delivery to CloudWatch Logs, and correlate controlled connectivity tests with recorded network actions.
+
+Terraform created:
+- A CloudWatch log group with one-day retention.
+- An IAM role trusted by `[redacted VPC ID]low-logs.amazonaws.com`.
+- An IAM policy granting the required CloudWatch Logs delivery permissions.
+- A VPC Flow Log configured for `ALL` traffic and CloudWatch Logs delivery.
+
+Flow Log ID: `[redacted flow log ID]`
+
+AWS reported the Flow Log as `ACTIVE`, with delivery status `SUCCESS`. Initial `NODATA` records indicated that no qualifying traffic was recorded in those aggregation intervals; they did not mean traffic had been rejected.
+
+## 2. Prominent troubleshooting case study: detecting unintended Terraform replacement
+
+### Initial observation
+
+A Terraform plan intended to add Flow Logs unexpectedly proposed replacing both existing EC2 instances. The plan summary was:
+
+`6 to add, 0 to change, 2 to destroy`
+
+The replacement was outside the intended scope of the logging change and posed an avoidable risk to the existing lab infrastructure.
+
+### Hypothesis and evidence
+
+The configuration used a dynamic Amazon Linux 2023 AMI data source with `most_recent = true`. The newly resolved AMI differed from the AMI used by the existing instances.
+
+Read-only AWS CLI inspection confirmed that both instances used:
+
+`[redacted AMI ID]`
+
+The image was available, owned by Amazon (owner ID `137112412989`), and named:
+
+`al2023-[redacted AMI ID].12.20261012.0-kernel-6.1-x86_64`
+
+The newly resolved image was `[redacted AMI ID]`. The difference supported the hypothesis that dynamic AMI resolution had introduced drift into the plan.
+
+### Corrective action and verified outcome
+
+Both instance AMI arguments in `main.tf` were pinned to the verified existing AMI, `[redacted AMI ID]`. The data source was retained for reference.
+
+After validation, a fresh plan was generated and reviewed. Its summary was:
+
+`Plan: 4 to add, 0 to change, 0 to destroy.`
+
+Only after reviewing the revised plan was the saved plan applied. Terraform reported:
+
+`Apply complete! Resources: 4 added, 0 changed, 0 destroyed.`
+
+No EC2 replacements were applied.
+
+### Engineering significance
+
+This is a key example of infrastructure-as-code change control and evidence-led troubleshooting. A successful `terraform validate` does not establish that a plan is safe. The unexpected destruction was detected during plan review, investigated against actual AWS state, and prevented before deployment.
+
+The sequence was:
+1. Detect the unexpected destructive actions.
+2. Do not apply the original plan.
+3. Inspect actual instance and AMI state using read-only AWS CLI commands.
+4. Test the AMI-drift hypothesis against the observed IDs and image metadata.
+5. Pin the existing AMI to preserve the intended infrastructure.
+6. Generate and review a fresh plan.
+7. Apply only after the revised plan showed zero changes and zero destructions.
+8. Confirm the apply summary.
+
+This demonstrates risk containment, blast-radius reduction, drift diagnosis, and disciplined change control.
+
+## 3. Controlled live connectivity tests
+
+### TCP 8080 — accepted
+
+Client instance: `[redacted instance ID]`, private IP `[redacted private IP]`
+App instance: `[redacted instance ID]`, private IP `[redacted private IP]`
+
+After the instances were restarted, listener inspection showed SSH listening on port 22 but no service listening on port 8080. This was consistent with the temporary Python HTTP server not surviving the stop/start cycle. The server was started again for the controlled test.
+
+From the client SSM session, a request to `http://[redacted private IP]:8080/` established a TCP connection and returned `HTTP/1.0 200 OK`.
+
+Flow Logs recorded the client request and response:
+
+`[redacted private IP] [redacted private IP] 60414 8080 6 1 60 ... ACCEPT OK`
+
+`[redacted private IP] [redacted private IP] 8080 60414 6 1 40 ... ACCEPT OK`
+
+The records appeared in both client-side and app-side interface streams. This correlated the successful application test with accepted TCP traffic.
+
+### TCP 22 — rejected
+
+The client test was:
+
+`timeout 5 bash -c '</dev/tcp/[redacted private IP]/22'`
+
+It returned exit code `124`, indicating a timeout.
+
+The corresponding Flow Log record was:
+
+`2 [redacted AWS account ID] en[redacted instance ID] [redacted private IP] [redacted private IP] 34988 22 6 3 180 1792085355 1792085383 REJECT OK`
+
+Using the version 2 Flow Logs field order, the record identifies:
+- Client source: `[redacted private IP]`
+- App destination: `[redacted private IP]`
+- Destination port: `22`
+- Protocol: `6` (TCP)
+- Packets: `3`
+- Bytes: `180`
+- Action: `REJECT`
+- Log status: `OK`
+
+This directly evidences rejection of the tested SSH flow at the client network interface.
+
+Reachability Analyzer independently reported no permitted path for TCP 22, with security-group mismatches on client egress and app ingress. The client security group lacked the relevant TCP 22 egress permission, and the app security group lacked the corresponding TCP 22 ingress permission.
+
+The timeout alone could not identify the dropping control. Flow Logs, the live security-group configuration, and Reachability Analyzer together provide a substantially stronger diagnosis.
+
+## 4. Other log observations and evidence limits
+
+The query also returned unrelated rejected traffic, including UDP packets to destination port 123 and inbound connection attempts from external addresses. These records were not treated as evidence for the controlled TCP 22 test.
+
+The exercise illustrates why Flow Logs must be filtered and correlated by source, destination, ports, protocol, interface, and time window. A `REJECT` record for unrelated traffic is not proof that a particular test was rejected.
+
+The earlier `NODATA` records were also distinguished from actual traffic records. `NODATA` does not mean `REJECT`.
+
+## 5. Troubleshooting method
+
+The objective used the following evidence-led sequence:
+
+1. Define the expected network behavior.
+2. Run a controlled connectivity test.
+3. Record the observed result, including HTTP status or exit code.
+4. Form hypotheses about application listeners, routes, and security groups.
+5. Inspect listeners and AWS configuration.
+6. Use Reachability Analyzer to assess the modeled path.
+7. Correlate the test with Flow Logs.
+8. Consider alternative explanations before reaching a conclusion.
+
+The missing HTTP listener after restart was treated separately from network reachability. The Terraform AMI anomaly was handled with the same discipline: investigate unexpected behavior, test a hypothesis against actual state, and avoid destructive action until the evidence supports a safe plan.
+
+## 6. Cost controls and conclusion
+
+After testing, stop requests were issued for both EC2 instances and both instances were confirmed stopped.
+
+Stopping EC2 instances limits their compute charges, but EBS volumes, CloudWatch Logs, and VPC interface endpoints can continue to incur charges. Resource inventory and cost review remain part of final cleanup.
+
+**Objective 5 status:** Configured, deployed, tested, and evidenced.
+
+The Flow Logs delivery configuration was active. Controlled TCP 8080 traffic was accepted and returned HTTP 200; controlled TCP 22 traffic was rejected, corroborated by Reachability Analyzer and security-group evidence. The Terraform plan anomaly was detected and corrected before application, resulting in four resources added and zero resources changed or destroyed.
+
+
+### Objective 6 — Deployed-state verification record
+
+Read-only AWS CLI inspection confirmed the following:
+
+- Client route table `[redacted route table ID]`, associated with subnet `[redacted subnet ID]`: active VPC-local route and `0.0.0.0/0` through Internet Gateway `[redacted internet gateway ID]`.
+- Private app route table `[redacted route table ID]`, associated with subnet `[redacted subnet ID]`: active VPC-local route only; no default route to an Internet Gateway or NAT Gateway.
+- The app security group `[redacted security group ID]` allows inbound TCP 8080 from client SG `[redacted security group ID]` and outbound TCP 443 to endpoint SG `[redacted security group ID]`.
+- The endpoint security group permits inbound TCP 443 from the client and app security groups and has no egress rules.
+- The client security group has no ingress rules; it permits TCP 8080 to the app SG and TCP 443 to `0.0.0.0/0`.
+- Terraform defines `ssm` and `ssmmessages` interface endpoints in the private app subnet with private DNS enabled.
+
+**Assessment:** The observed route tables and security-group rules match the intended segmentation in the inspected areas. The private app has no default internet route and its egress is restricted to the SSM endpoint security group. The client’s broad HTTPS egress remains a least-privilege improvement opportunity. The earlier public HTTPS timeout is consistent with the private routing design, but that timeout alone does not isolate a single blocking control.
+
+**Limitations:** These checks cover the listed route tables and security groups, not every possible network path or service dependency. A full cost comparison between NAT-based and endpoint-based designs was not performed. No network rules were changed during this verification.

@@ -228,7 +228,7 @@ resource "aws_iam_instance_profile" "client_ssm" {
 }
 
 resource "aws_instance" "client" {
-  ami                    = data.aws_ami.al2023.id
+  ami                    = "ami-007d06d55365ba365"
   instance_type          = "t3.micro"
   subnet_id              = aws_subnet.lab.id
   vpc_security_group_ids = [aws_security_group.client.id]
@@ -383,7 +383,7 @@ resource "aws_iam_instance_profile" "app_ssm" {
 
 # Private application instance managed through Systems Manager.
 resource "aws_instance" "app" {
-  ami                    = data.aws_ami.al2023.id
+  ami                    = "ami-007d06d55365ba365"
   instance_type          = "t3.micro"
   subnet_id              = aws_subnet.private_app.id
   vpc_security_group_ids = [aws_security_group.app.id]
@@ -412,6 +412,76 @@ resource "aws_instance" "app" {
     Environment = "learning"
     ManagedBy   = "Terraform"
     Role        = "app"
+  }
+}
+
+
+# CloudWatch destination for VPC Flow Logs.
+resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
+  name              = "/aws/vpc/terraform-security-lab"
+  retention_in_days = 1
+
+  tags = {
+    Name        = "terraform-security-lab-vpc-flow-logs"
+    Environment = "learning"
+    ManagedBy   = "Terraform"
+  }
+}
+
+# IAM role assumed by the VPC Flow Logs service.
+resource "aws_iam_role" "vpc_flow_logs" {
+  name = "terraform-security-lab-vpc-flow-logs"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "vpc-flow-logs.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = {
+    Name        = "terraform-security-lab-vpc-flow-logs"
+    Environment = "learning"
+    ManagedBy   = "Terraform"
+  }
+}
+
+# Permit Flow Logs to create streams and publish records in this log group.
+resource "aws_iam_role_policy" "vpc_flow_logs" {
+  name = "terraform-security-lab-vpc-flow-logs-publish"
+  role = aws_iam_role.vpc_flow_logs.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "logs:CreateLogStream",
+        "logs:PutLogEvents",
+        "logs:DescribeLogGroups",
+        "logs:DescribeLogStreams"
+      ]
+      Resource = "${aws_cloudwatch_log_group.vpc_flow_logs.arn}:*"
+    }]
+  })
+}
+
+# Capture accepted and rejected traffic for the lab VPC.
+resource "aws_flow_log" "vpc" {
+  vpc_id               = aws_vpc.lab.id
+  traffic_type         = "ALL"
+  log_destination_type = "cloud-watch-logs"
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
+  iam_role_arn         = aws_iam_role.vpc_flow_logs.arn
+
+  tags = {
+    Name        = "terraform-security-lab-vpc-flow-logs"
+    Environment = "learning"
+    ManagedBy   = "Terraform"
   }
 }
 
