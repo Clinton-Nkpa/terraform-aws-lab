@@ -3,7 +3,7 @@
 *Practical evidence assessment — 13 October 2026*
 
 ## Purpose
-This report evaluates the evidence demonstrated in the AWS Terraform security lab against twelve recommended AWS cloud-security knowledge areas. Statuses describe evidence observed in this lab, not a definitive measure of the learner's total knowledge or capability.
+This report evaluates the evidence demonstrated in the AWS Terraform security lab against twelve recommended AWS cloud-security knowledge areas. Statuses describe evidence observed in this lab, not a broader certification or enterprise-scale cloud security assessment.
 
 ## Your 12-point assessment
 
@@ -13,13 +13,13 @@ Assessment based on lab progress as of 13 October 2026.
 
 **Status: Partially demonstrated**
 
-Your lab uses AWS-managed infrastructure while you configure guest access, IAM, network controls and instance security. That gives you practical examples of the division of responsibility, but you haven't yet explicitly mapped AWS's responsibilities against yours for EC2, VPC, IAM and the other services.
+Your lab uses AWS-managed infrastructure while you configure guest access, IAM, network controls and instance security. That gives you practical examples of the division of responsibility, but you have not yet examined broader organisational responsibilities, shared-control boundaries or operational governance at scale.
 
 ### 2. Managing identity at scale
 
 **Status: Partially demonstrated**
 
-You configured dedicated EC2 roles and instance profiles, attached `AmazonSSMManagedInstanceCore`, and restored SSM connectivity by investigating endpoint access. This is real workload identity management, but not identity at scale: no multi-account identity architecture, permission boundaries, organisation-wide controls or federated access has been demonstrated.
+You configured dedicated EC2 roles and instance profiles, attached `AmazonSSMManagedInstanceCore`, and restored SSM connectivity by investigating endpoint access. This is real workload identity management in practice and a useful demonstration of role-based access design, but it does not yet cover broader identity governance or enterprise-scale IAM patterns.
 
 ### 3. Multi-account governance
 
@@ -37,7 +37,7 @@ Terraform provides infrastructure as code, but we haven't examined provider and 
 
 **Status: Partially demonstrated**
 
-Your network segmentation, restricted security-group rules, private application subnet and Session Manager access demonstrate preventative controls and a secure administration approach. We haven't run a defined security incident scenario, containment procedure or recovery exercise.
+Your network segmentation, restricted security-group rules, private application subnet and Session Manager access demonstrate preventative controls and a secure administration approach. We haven't run a formal detection or response exercise across logs, alerts and recovery activities, so the response aspect remains partial.
 
 ### 6. Cloud vulnerability management
 
@@ -51,13 +51,13 @@ We haven't assessed EC2 vulnerabilities, scanned images, reviewed installed pack
 
 You configured VPC CIDRs, subnet routes and security groups, then tested TCP 8080 and TCP 22. You also inspected the private route table and controlled TCP 443 access to Systems Manager endpoints.
 
-The qualification: these are strong network-layer and transport-layer examples. You haven't yet demonstrated application-layer (L7) controls such as AWS WAF, HTTP request filtering or centralised firewall policy management at scale.
+The qualification: these are strong network-layer and transport-layer examples. You haven't yet demonstrated application-layer (L7) controls such as AWS WAF, HTTP request filtering or centralised firewall management.
 
 ### 8. Incident root cause analysis
 
 **Status: Partially demonstrated**
 
-Your investigation of the SSM connection failure is a practical example of troubleshooting: you inspected live rules, identified that the endpoint security group lacked client ingress on TCP 443, applied a targeted change and verified that the connection recovered.
+Your investigation of the SSM connection failure is a practical example of troubleshooting: you inspected live rules, identified that the endpoint security group lacked client ingress on TCP 443, applied a targeted fix and verified connectivity. That is a credible, small-scale root-cause investigation.
 
 This is a credible, small-scale root-cause investigation. It isn't yet a full incident RCA involving a formal timeline, audit logs, impact analysis, contributing factors and preventive actions.
 
@@ -65,13 +65,13 @@ This is a credible, small-scale root-cause investigation. It isn't yet a full in
 
 **Status: Not demonstrated**
 
-Your updated lab report is useful technical documentation, but we haven't performed an audit exercise: collecting evidence against controls, identifying gaps, documenting exceptions or presenting remediation evidence to an auditor.
+Your updated lab report is useful technical documentation, but we haven't performed an audit exercise: collecting evidence against controls, identifying gaps, documenting exceptions or presenting remediation recommendations.
 
 ### 10. Logging and monitoring strategies
 
 **Status: Partially demonstrated**
 
-You've used AWS CLI inspection, EC2 health checks, SSM managed-instance status and terminal output to observe system behaviour. Those are operational observations, but we haven't configured a deliberate security logging and monitoring strategy using services such as CloudTrail, CloudWatch, VPC Flow Logs, GuardDuty or Security Hub.
+You've used AWS CLI inspection, EC2 health checks, SSM managed-instance status and terminal output to observe system behaviour. Those are operational observations, but we haven't configured a deliberate log architecture, alert flow or central monitoring strategy.
 
 ### 11. Encryption at rest and in transit
 
@@ -79,13 +79,13 @@ You've used AWS CLI inspection, EC2 health checks, SSM managed-instance status a
 
 Your EC2 root volumes use encryption, and you tested HTTPS connectivity to AWS endpoints and a public website. These are relevant examples of encryption controls.
 
-We haven't yet inspected the KMS key configuration, key policies and rotation, or demonstrated and verified TLS for your own application. A successful HTTPS test demonstrates a TLS connection; it does not establish a comprehensive encryption strategy.
+We haven't yet inspected the KMS key configuration, key policies and rotation, or demonstrated and verified TLS for your own application. A successful HTTPS test demonstrates a TLS connection; it does not yet validate end-to-end encryption design for a custom workload.
 
 ### 12. Disaster recovery and backups
 
 **Status: Not demonstrated**
 
-You created backups of local Terraform files and state before changes. That's good change-management practice, but it is not evidence of AWS workload disaster recovery. We haven't configured AWS backups, tested restoration, established RPO/RTO targets or exercised recovery from a regional or infrastructure failure.
+You created backups of local Terraform files and state before changes. That's good change-management practice, but it is not evidence of AWS workload disaster recovery. We haven't configured AWS backup or restore processes with explicit recovery objectives and tested recovery validity.
 
 ## Summary
 
@@ -93,11 +93,15 @@ You created backups of local Terraform files and state before changes. That's go
 - **Partially demonstrated:** 6 areas — shared responsibility; identity at scale; incident prevention and response; incident root cause analysis; logging and monitoring; encryption at rest and in transit.
 - **Not demonstrated:** 5 areas — multi-account governance; software supply chain risks; cloud vulnerability management; responding to an audit; disaster recovery and AWS workload backups.
 
-These are evidence classifications rather than equal-weight competency scores. The categories overlap, and “not demonstrated” means the lab has not yet produced evidence for that area; it does not establish that the learner lacks the knowledge.
+These are evidence classifications rather than equal-weight competency scores. The categories overlap, and “not demonstrated” means the lab has not yet produced evidence for that area; it does not mean the skill is impossible or irrelevant.
+
+## Conclusion
+
+This lab provides clear, evidence-based demonstrations of AWS networking and access-control skills, including VPC design, routing, security groups, EC2 roles and instance profiles, and SSM troubleshooting, and shows practical progress in identity management, incident investigation, logging and monitoring, and encryption. It documents explored controls and observed behaviour and identifies focused next steps, including multi-account governance, software supply-chain checks, vulnerability scanning and remediation, audit evidence collection, and backup-and-restore validation. It also points to a longer-term path toward a full-scale system design.
 
 ## Suggested next steps
 
 1. Complete the network investigation with VPC Reachability Analyzer and, if appropriate, VPC Flow Logs.
 2. Build a controlled detection and incident-investigation exercise using CloudTrail and selected CloudWatch or VPC Flow Logs.
 3. Inspect KMS and EBS encryption settings, run a controlled vulnerability assessment, and complete a backup-and-restore exercise with explicit recovery criteria.
-4. Extend the lab into multi-account governance, audit evidence collection, and software supply-chain security.
+4. Extend the lab into multi-account governance, audit evidence collection, and software supply-chain security, and eventually work towards a full-scale system design.
